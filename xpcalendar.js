@@ -9,12 +9,12 @@
  // Module definition \\
 //---------------------------------------------------------------------------------------------------------------------\
 (function(factory) {
-  if (typeof define === 'function' && define.amd) {
+  if (typeof define === 'function' && define.amd)
     define([ 'jquery', 'moment' ], factory);
-  }
-  else {
+  else if(typeof require === 'function')
+    factory(require('jquery'), require('moment'));
+  else
     factory(jQuery, moment);
-  }
 })(function($, moment) {
   var fc = $.fullCalendar;
   if(fc === undefined)
@@ -25,11 +25,7 @@
 //---------------------------------------------------------------------------------------------------------------------\
   var helper = {
     absRound: function(number) {
-      if (number < 0) {
-        return Math.ceil(number);
-      } else {
-        return Math.floor(number);
-      }
+      return (number < 0) ? Math.ceil(number) : Math.floor(number);
     },
     builder: function(name, getter, setter) {
       Instant.prototype[name] = function(value) {
@@ -241,12 +237,21 @@
   moment.fn.format = function() {
     // xpCalendar has to override the moment.format to make it compatible with xpCalendar.Instant.
     // It is due to the fact that we do not have access to how fullCalendar calls moment.format.
-    debugger;
     if(this instanceof Instant)
       return oldFormat.apply(moment(this.date), arguments);
 
     return oldFormat.apply(this, arguments);
   };
+
+  //============\\
+ //    Export    \\
+//---------------------------------------------------------------------------------------------------------------------\
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = Interval;
+  else if (typeof define === 'function' && define.amd)
+    define('Interval', function (require, exports, module) {
+      return Interval;
+    });
 //=====================================================================================================================/
 });
 
