@@ -28,22 +28,18 @@
     "moment": "latest"
   },
   "devDependencies": {
-    "uglify-js": "latest",
     "grunt": "latest",
     "nodeunit": "latest",
-    "grunt-contrib-jshint": "latest",
+    "phantomjs": "latest",
     "grunt-contrib-nodeunit": "latest",
     "grunt-contrib-concat": "latest",
-    "grunt-contrib-uglify": "latest",
     "grunt-contrib-watch": "latest",
-    "grunt-env": "latest",
-    "grunt-jscs-checker": "latest",
     "grunt-karma": "latest",
     "load-grunt-tasks": "latest",
     "karma": "latest",
     "karma-chrome-launcher": "latest",
     "karma-firefox-launcher": "latest",
-    "karma-nodeunit": "latest",
+    "karma-nodeunit": "latest"
   },
   "scripts": {
     "test": "grunt test:node"

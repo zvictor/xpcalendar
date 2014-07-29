@@ -16,7 +16,9 @@ module.exports = function (grunt) {
       options: {
         frameworks: ['nodeunit'],
         files: [
-          'min/moment-with-locales.js',
+          'bower_components/moment/moment.js',
+          'bower_components/jquery/dist/jquery.js',
+          'bower_components/fullcalendar/dist/fullcalendar.js',
           'min/tests.js',
           'test/browser.js'
         ]
@@ -40,10 +42,9 @@ module.exports = function (grunt) {
       test : {
         files : [
           'xpcalendar.js',
-          'locale/*.js',
           'test/**/*.js'
         ],
-        tasks: ['nodeunit']
+        tasks: ['test']
       }
     }
   });
@@ -52,11 +53,10 @@ module.exports = function (grunt) {
   require('load-grunt-tasks')(grunt);
 
   // Default task.
-  grunt.registerTask('default', ['nodeunit']);
+  grunt.registerTask('default', ['test']);
 
   // test tasks
-  grunt.registerTask('test', ['test:node', 'test:browser']);
-  grunt.registerTask('test:node', ['nodeunit']);
-  grunt.registerTask('test:server', ['concat', 'embedLocales', 'karma:server']);
-  grunt.registerTask('test:browser', ['concat', 'embedLocales', 'karma:chrome', 'karma:firefox']);
+  grunt.registerTask('test', ['test:browser']);
+  grunt.registerTask('test:server', ['concat', 'karma:server']);
+  grunt.registerTask('test:browser', ['concat', 'karma:chrome', 'karma:firefox']);
 };
