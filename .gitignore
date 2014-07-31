@@ -5,5 +5,3 @@ min/tests.js
 sauce_connect.log
 .sauce-labs.creds
 npm-debug.log
-#remove the following line when start having proper test files
-test/

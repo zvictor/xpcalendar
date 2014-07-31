@@ -6,7 +6,7 @@ module.exports = function (grunt) {
         src: [
           'test/browser-prefix.js',
           'test/moment/*.js',
-          'test/locale/*.js',
+          /*'test/locale/*.js',*/
           'test/browser-suffix.js'
         ],
         dest: 'min/tests.js'
@@ -29,14 +29,14 @@ module.exports = function (grunt) {
       chrome: {
         singleRun: true,
         browsers: ['Chrome']
-      },
+      }/*,
       firefox: {
         singleRun: true,
         browsers: ['Firefox']
-      }
+      }*/
     },
     nodeunit : {
-      all : ["test/moment/**/*.js", "test/locale/**/*.js"]
+      all : ["test/moment/**/*.js"/*locale files here*/]
     },
     watch : {
       test : {

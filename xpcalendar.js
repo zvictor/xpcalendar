@@ -11,8 +11,8 @@
 (function(factory) {
   if (typeof define === 'function' && define.amd)
     define([ 'jquery', 'moment' ], factory);
-  else if(typeof require === 'function')
-    factory(require('jquery'), require('moment'));
+//  else if(typeof require === 'function')
+//    factory(require('jquery'), require('moment'));
   else
     factory(jQuery, moment);
 })(function($, moment) {
@@ -24,6 +24,20 @@
 //      Helpers      \\
 //---------------------------------------------------------------------------------------------------------------------\
   var helper = {
+    inherit: function(proto, propertiesObject) {
+      if (typeof Object.create === 'function')
+        return Object.create(proto, propertiesObject);
+
+      var F = function () {};
+      if (arguments.length > 1)
+        throw Error('Second argument not supported');
+      if (proto === null)
+        throw Error('Cannot set a null [[Prototype]]');
+      if (typeof proto != 'object')
+        throw TypeError('Argument must be an object');
+      F.prototype = proto;
+      return new F();
+    },
     absRound: function(number) {
       return (number < 0) ? Math.ceil(number) : Math.floor(number);
     },
@@ -79,6 +93,7 @@
   //==================\\
  // Instant prototype  \\
 //---------------------------------------------------------------------------------------------------------------------\
+  Instant.prototype = helper.inherit(moment.fn);
   helper.builder('day', Date.prototype.getDate, Date.prototype.setDate);
   helper.builder('hours', Date.prototype.getHours, Date.prototype.setHours);
   helper.builder('minutes', Date.prototype.getMinutes, Date.prototype.setMinutes);
