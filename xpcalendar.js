@@ -6,20 +6,17 @@
  */
 
 
-  //=================\\
- // Module definition \\
+  //====================\\
+ // Dependency injection \\
 //---------------------------------------------------------------------------------------------------------------------\
 (function(factory) {
   if (typeof define === 'function' && define.amd)
     define([ 'jquery', 'moment' ], factory);
-//  else if(typeof require === 'function')
-//    factory(require('jquery'), require('moment'));
+  else if(typeof require === 'function')
+    factory(require('jquery'), require('moment'));
   else
     factory(jQuery, moment);
 })(function($, moment) {
-  var fc = $.fullCalendar;
-  if(fc === undefined)
-    throw new Error("FullCalendar could not be found. It must be loaded before you load xpCalendar");
 
  //=================\\
 //      Helpers      \\
@@ -258,13 +255,21 @@
  // External overrides \\
 //---------------------------------------------------------------------------------------------------------------------\
 // Replaces fullCalendar's moment by xpCalendar's Instant.
-  fc.moment = function() {
-    return makeInstant(arguments);
-  };
+  var fc = $.fullCalendar;
+  if(fc === undefined) {
+    if (typeof require === 'function')
+      console.log("Warning: fullCalendar could not be found and xpcalendar was not applied.");
+    else
+      throw new Error("fullCalendar could not be found. It must be loaded before you load xpCalendar");
+  } else {
+    fc.moment = function () {
+      return makeInstant(arguments);
+    };
 
-  fc.moment.parseZone = function() {
-    return makeInstant(arguments, true, true);
-  };
+    fc.moment.parseZone = function () {
+      return makeInstant(arguments, true, true);
+    };
+  }
 
   var oldFormat =  moment.fn.format;
   moment.fn.format = function() {
@@ -280,10 +285,10 @@
  //    Export    \\
 //---------------------------------------------------------------------------------------------------------------------\
   if (typeof module !== 'undefined' && module.exports)
-    module.exports = Interval;
+    module.exports = Instant;
   else if (typeof define === 'function' && define.amd)
-    define('Interval', function (require, exports, module) {
-      return Interval;
+    define('Instant', function (require, exports, module) {
+      return Instant;
     });
 //=====================================================================================================================/
 });
