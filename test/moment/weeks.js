@@ -1,4 +1,4 @@
-var moment = require("../../xpcalendar").makeInstant;
+var moment = require("../../xpcalendar");
 
 exports.weeks = {
     setUp : function (done) {

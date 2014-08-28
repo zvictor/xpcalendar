@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "jquery": "latest",
-    "moment": "latest"
+    "moment": "2.8.1"
   },
   "devDependencies": {
     "grunt": "latest",

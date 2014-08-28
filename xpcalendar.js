@@ -5,6 +5,7 @@
  * (c) 2014 KirkeWeb ApS
  */
 
+
   //=================\\
  // Module definition \\
 //---------------------------------------------------------------------------------------------------------------------\
@@ -102,7 +103,7 @@
 
   //Checks if it is a valid "moment". Called externally only.
   Instant.prototype.isValid = function() {
-    // Since we already checked the validity of the data when we created the instance,
+    // Since we have already checked the validity of the data when we created the instance,
     // it should always return true.
     return true;
   };
@@ -237,9 +238,26 @@
   };
 
   //==================\\
+ //  momentjs wrapping \\
+//---------------------------------------------------------------------------------------------------------------------\
+// A momentjs method should be called when it cannot be found at xpCalendar
+  for (var key in moment)
+    if (moment.hasOwnProperty(key) /*&& typeof moment[key] === 'function'*/ && !Instant.hasOwnProperty(key))
+      Instant[key] = function() {
+        return moment[clone].apply(this, arguments);
+      }
+
+  var momentProto = moment.fn; // alternatively: moment().constructor.prototype;
+  for (var key in momentProto)
+    if (momentProto.hasOwnProperty(key) && typeof momentProto[key] === 'function' && !Instant.hasOwnProperty(key))
+      Instant.prototype[key] = function() {
+        return moment(this.date)[clone].apply(this, arguments);
+      }
+
+  //==================\\
  // External overrides \\
 //---------------------------------------------------------------------------------------------------------------------\
-  // Replaces fullCalendar's moment by xpCalendar's Instant.
+// Replaces fullCalendar's moment by xpCalendar's Instant.
   fc.moment = function() {
     return makeInstant(arguments);
   };
@@ -275,4 +293,5 @@
  * Some interesting benchmark tests relevant to this library:
    - http://jsperf.com/store-date-string-or-integer
    - http://jsperf.com/new-date-vs-date-now-vs-performance-now/6
+ *
  */
