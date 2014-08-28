@@ -5,15 +5,12 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests",
     "tasks",
     "Gruntfile.js",
     "package.json"
   ],
   "dependencies": {
     "fullcalendar": "~2.0.2",
-    "moment": "2.8.1"
+    "moment": "2.6.0"
   }
 }

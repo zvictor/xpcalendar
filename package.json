@@ -4,8 +4,7 @@
   "description": "'eXtreme Performance' for the fullcalendar jQuery plugin",
   "homepage": "https://github.com/zvictor/xpcalendar",
   "author": "Victor Duarte (https://github.com/zvictor)",
-  "contributors": [
-  ],
+  "contributors": [],
   "keywords": [
     "xpcalendar",
     "date",
@@ -25,21 +24,23 @@
   },
   "dependencies": {
     "jquery": "latest",
-    "moment": "2.8.1"
+    "moment": "2.6.0"
   },
   "devDependencies": {
     "grunt": "latest",
-    "nodeunit": "latest",
-    "phantomjs": "latest",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-nodeunit": "latest",
-    "grunt-contrib-concat": "latest",
     "grunt-contrib-watch": "latest",
     "grunt-karma": "latest",
-    "load-grunt-tasks": "latest",
+    "jquery": "^1.7.0",
     "karma": "latest",
     "karma-chrome-launcher": "latest",
     "karma-firefox-launcher": "latest",
-    "karma-nodeunit": "latest"
+    "karma-nodeunit": "latest",
+    "load-grunt-tasks": "latest",
+    "nodeunit": "latest",
+    "phantomjs": "latest"
   },
   "scripts": {
     "test": "grunt test:node"

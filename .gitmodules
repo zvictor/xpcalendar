@@ -1,0 +1,6 @@
+[submodule "vendor/moment"]
+	path = vendor/moment
+	url = https://github.com/moment/moment.git
+[submodule "vendor/fullcalendar"]
+	path = vendor/fullcalendar
+	url = https://github.com/arshaw/fullcalendar.git

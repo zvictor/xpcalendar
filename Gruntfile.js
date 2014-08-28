@@ -1,62 +1,74 @@
 module.exports = function (grunt) {
-  grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
-    concat : {
-      tests: {
-        src: [
-          'test/browser-prefix.js',
-          'test/moment/*.js',
-          /*'test/locale/*.js',*/
-          'test/browser-suffix.js'
-        ],
-        dest: 'min/tests.js'
-      }
-    },
-    karma : {
-      options: {
-        frameworks: ['nodeunit'],
+  var path = require('path');
+  var config = {
+    copy: {
+      moment: {
         files: [
-          'bower_components/moment/moment.js',
-          'bower_components/jquery/dist/jquery.js',
-          'bower_components/fullcalendar/dist/fullcalendar.js',
-          'min/tests.js',
-          'test/browser.js'
+          {
+            expand: true,
+            flatten: false,
+            nonull: true,
+            src: 'vendor/moment/moment.js',
+            dest: './',
+            rename: function (dest, src) {
+              return src + '.bak';
+            },
+            filter: function (filepath) {
+              return !grunt.file.exists(filepath + '.bak');
+            }
+          },
+          {
+            expand: true,
+            flatten: false,
+            nonull: true,
+            src: 'xpcalendar.js',
+            dest: './vendor/moment/',
+            rename: function (dest, src) {
+              return dest + 'moment.js';
+            }
+          }
         ]
-      },
-      server: {
-        browsers: []
-      },
-      chrome: {
-        singleRun: true,
-        browsers: ['Chrome']
-      }/*,
-      firefox: {
-        singleRun: true,
-        browsers: ['Firefox']
-      }*/
-    },
-    nodeunit : {
-      all : ["test/moment/**/*.js"/*locale files here*/]
-    },
-    watch : {
-      test : {
-        files : [
-          'xpcalendar.js',
-          'test/**/*.js'
-        ],
-        tasks: ['test']
       }
     }
+  };
+
+  grunt.registerTask('testMoment', function () {
+    this.requires('copy:moment');
+
+    var done = this.async();
+    grunt.util.spawn({
+      grunt: true,
+      args: ['test'],
+      opts: {
+        cwd: path.resolve('vendor/moment'),
+        stdio: 'inherit'
+      }
+    }, function (err, result, code) {
+      done();
+    });
   });
 
-  // These plugins provide necessary tasks.
-  require('load-grunt-tasks')(grunt);
+  grunt.registerTask('testFullcalendar', function () {
+    this.requires('copy:fullcalendar');
 
-  // Default task.
+    var done = this.async();
+    grunt.util.spawn({
+      grunt: true,
+      args: ['karma:single', '--forced'],
+      opts: {
+        cwd: path.resolve('vendor/fullcalendar'),
+        stdio: 'inherit'
+      }
+    }, function (err, result, code) {
+      done();
+    });
+  });
+
+  grunt.initConfig(config);
+  grunt.loadNpmTasks('grunt-contrib-copy');
+
   grunt.registerTask('default', ['test']);
-
-  // test tasks
-  grunt.registerTask('test', ['test:browser']);
-  grunt.registerTask('test:server', ['concat', 'karma:server']);
-  grunt.registerTask('test:browser', ['concat', 'karma:chrome', 'karma:firefox']);
+  grunt.registerTask('test', ['test:moment', 'test:fullcalendar']);
+  grunt.registerTask('test:moment', ['copy:moment', 'testMoment']);
+  grunt.registerTask('test:fullcalendar', ['copy:moment', 'testFullcalendar']);
 };
