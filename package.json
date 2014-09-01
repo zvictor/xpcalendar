@@ -23,7 +23,7 @@
     "url": "https://github.com/zvictor/xpcalendar/issues"
   },
   "dependencies": {
-    "jquery": "latest",
+    "jquery": "^2.1.0",
     "moment": "2.6.0"
   },
   "devDependencies": {
@@ -34,6 +34,7 @@
     "grunt-contrib-watch": "latest",
     "grunt-karma": "latest",
     "jquery": "^1.7.0",
+    "jsdom": "^1.0.0-pre.5",
     "karma": "latest",
     "karma-chrome-launcher": "latest",
     "karma-firefox-launcher": "latest",

@@ -16,24 +16,31 @@ module.exports = function (grunt) {
             filter: function (filepath) {
               return !grunt.file.exists(filepath + '.bak');
             }
-          },
-          {
-            expand: true,
-            flatten: false,
-            nonull: true,
-            src: 'xpcalendar.js',
-            dest: './vendor/moment/',
-            rename: function (dest, src) {
-              return dest + 'moment.js';
-            }
           }
         ]
+      }
+    },
+    concat: {
+      moment: {
+        nonull: true,
+        src: ['node_modules/jquery/dist/jquery.js', 'vendor/moment/moment.js.bak', 'vendor/fullcalendar/dist/fullcalendar.js', 'xpcalendar.js'],
+        dest: './vendor/moment/moment.js',
+        options: {
+          banner: '(function(){\
+          if(typeof module !== "undefined") { \
+            var window = require("jsdom").jsdom("<html><body></body></html>").parentWindow; \
+            jQuery = require("jquery")(window); \
+            moment = require("moment"); \
+          }',
+          footer: '}()); if(typeof module === "undefined") window.moment = window.instant;'
+        }
       }
     }
   };
 
   grunt.registerTask('testMoment', function () {
     this.requires('copy:moment');
+    this.requires('concat:moment');
 
     var done = this.async();
     grunt.util.spawn({
@@ -66,9 +73,10 @@ module.exports = function (grunt) {
 
   grunt.initConfig(config);
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
   grunt.registerTask('default', ['test']);
   grunt.registerTask('test', ['test:moment', 'test:fullcalendar']);
-  grunt.registerTask('test:moment', ['copy:moment', 'testMoment']);
+  grunt.registerTask('test:moment', ['copy:moment', 'concat:moment', 'testMoment']);
   grunt.registerTask('test:fullcalendar', ['copy:moment', 'testFullcalendar']);
 };

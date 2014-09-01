@@ -42,9 +42,9 @@
     builder: function(name, getter, setter) {
       Instant.prototype[name] = function(value) {
         if(value === undefined)
-          return getter.apply(this.date, arguments);
+          return getter.apply(this._date, arguments);
 
-        setter.apply(this.date, arguments);
+        setter.apply(this._date, arguments);
         return this;
       }
     }
@@ -57,7 +57,9 @@
     if(!Instant.isValidDate(input))
       throw new Error("xpCalendar.Instant does not accept non Date input.");
 
-    this.date = input;
+    this._date = input;
+
+    return this;
   }
 
   //Checks if a given input is a valid Date instance
@@ -73,8 +75,15 @@
   function makeInstant(args, parseAsUTC, parseZone) {
     // parseAsUTC and parseZone are ignored in our Instant object
     // Instant does not deal with zones.
-    var input = args[0];
+    var input;
     var output; // an object with fields for the new Instant object
+
+    if((Array.isArray && Array.isArray(args)) || Object.prototype.toString.call(args) === '[object Array]')
+      // call from fullcalendar
+      input = args[0];
+    else if(args === Object(args))
+      // moment 'config' object
+      input = args._i;
 
     if(input === undefined)
       output = new Date();
@@ -91,8 +100,8 @@
   //==================\\
  // Instant prototype  \\
 //---------------------------------------------------------------------------------------------------------------------\
-  Instant.prototype = helper.inherit(moment.fn);
   helper.builder('day', Date.prototype.getDate, Date.prototype.setDate);
+  helper.builder('date', Date.prototype.getDate, Date.prototype.setDate);
   helper.builder('hours', Date.prototype.getHours, Date.prototype.setHours);
   helper.builder('minutes', Date.prototype.getMinutes, Date.prototype.setMinutes);
   helper.builder('seconds', Date.prototype.getSeconds, Date.prototype.setSeconds);
@@ -113,34 +122,30 @@
 
   Instant.prototype.clone = function () {
     //@see http://jsperf.com/clone-date-object
-    return new Instant(new Date(this.date.getTime()));
+    return new Instant(new Date(this._date.getTime()));
   };
 
   // Strips out its time-of-day.
   Instant.prototype.stripTime = function() {
-    this.date = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDay(), 0, 0, 0, 0);
+    this._date = new Date(this._date.getFullYear(), this._date.getMonth(), this._date.getDay(), 0, 0, 0, 0);
     return this;
   };
 
   // Is the moment within the specified range? `end` is exclusive.
   Instant.prototype.isWithin = function(start, end) {
-    return this.date >= start.date && this.date < end.date;
-  };
-
-  Instant.prototype.format = function() {
-    return moment.fn.format.apply(this, arguments);
+    return this._date >= start.date && this._date < end.date;
   };
 
   Instant.prototype.toString = function( ){
     throw new Error("who is using this?"); // TODO! remove this line.
-    return this.date.toString();
+    return this._date.toString();
   };
 
   Instant.prototype.startOf = function(unit) {
     // the following switch intentionally omits break keywords
     // to utilize falling through the cases.
     if(unit === 'month' || unit === 'months')
-      this.date.setDate(1);
+      this._date.setDate(1);
     else if(unit === 'week' || unit === 'weeks')
       this.weekday(0);
     else
@@ -161,12 +166,12 @@
     if(quantity === 0)
       return this;
 
-    var copy = new Date(this.date.getTime());
+    var copy = new Date(this._date.getTime());
 
     if(unit === 'days') {
       copy.setTime(copy.getTime() + (quantity * 86400000/* 24h in ms */))
       copy = new Date(copy.getFullYear(), copy.getMonth(), copy.getDate(),
-        this.date.getHours(), this.date.getMinutes(), this.date.getSeconds());
+        this._date.getHours(), this._date.getMinutes(), this._date.getSeconds());
     } else if(unit === 'months') {
       var month = copy.getMonth();
       var year = copy.getYear();
@@ -182,9 +187,9 @@
       copy.setMonth(month);
       copy.setYear(year);
     } else
-      throw new Error("Not implement yet xpCalendar.Instant.startOF for unit "+unit);
+      throw new Error("Not implement yet xpCalendar.Instant.add for unit "+unit);
 
-    this.date = copy;
+    this._date = copy;
     return this;
   };
 
@@ -224,7 +229,7 @@
     if (unit === 'year' || unit === 'month')
       throw new Error("Not implement xpCalendar.Instant.diff for units 'year' and ' month' yet");
 
-    var diff = (this.date.getTime() - that.date.getTime());
+    var diff = (this._date.getTime() - that.date.getTime());
     var output = unit === 'second' ? diff / 1e3 : // 1000
         unit === 'minute' ? diff / 6e4 : // 1000 * 60
         unit === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
@@ -240,16 +245,22 @@
 // A momentjs method should be called when it cannot be found at xpCalendar
   for (var key in moment)
     if (moment.hasOwnProperty(key) /*&& typeof moment[key] === 'function'*/ && !Instant.hasOwnProperty(key))
-      Instant[key] = function() {
-        return moment[clone].apply(this, arguments);
-      }
+      makeInstant[key] = (function(method) {
+        return function() {
+          return method.apply(this, arguments);
+        };
+      })(moment[key]);
 
   var momentProto = moment.fn; // alternatively: moment().constructor.prototype;
   for (var key in momentProto)
     if (momentProto.hasOwnProperty(key) && typeof momentProto[key] === 'function' && !Instant.hasOwnProperty(key))
-      Instant.prototype[key] = function() {
-        return moment(this.date)[clone].apply(this, arguments);
-      }
+      Instant.prototype[key] = (function(method) {
+        return function () {
+          var output = method.apply(moment(this._date), arguments);
+          this._date = output._d;
+          return output;
+        };
+      })(momentProto[key]);
 
   //==================\\
  // External overrides \\
@@ -276,7 +287,7 @@
     // xpCalendar has to override the moment.format to make it compatible with xpCalendar.Instant.
     // It is due to the fact that we do not have access to how fullCalendar calls moment.format.
     if(this instanceof Instant)
-      return oldFormat.apply(moment(this.date), arguments);
+      return oldFormat.apply(moment(this._date), arguments);
 
     return oldFormat.apply(this, arguments);
   };
@@ -284,12 +295,17 @@
   //============\\
  //    Export    \\
 //---------------------------------------------------------------------------------------------------------------------\
+  var globalScope = typeof global !== 'undefined' ? global : this;
+
   if (typeof module !== 'undefined' && module.exports)
-    module.exports = Instant;
-  else if (typeof define === 'function' && define.amd)
+    module.exports = makeInstant;
+  else if (typeof define === 'function' && define.amd) {
     define('Instant', function (require, exports, module) {
-      return Instant;
+      return makeInstant;
     });
+    globalScope.instant = makeInstant;
+  } else
+    globalScope.instant = makeInstant;
 //=====================================================================================================================/
 });
 
