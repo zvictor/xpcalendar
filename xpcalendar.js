@@ -304,9 +304,12 @@
     if (momentProto.hasOwnProperty(key) && typeof momentProto[key] === 'function' && !Instant.prototype.hasOwnProperty(key))
       Instant.prototype[key] = (function(method) {
         return function () {
+          var output = method.apply(this.moment(), $.map(arguments, function(arg){
+            if($.isArray(arg))
+              return [arg];
 
-
-          var output = method.apply(this.moment(), arguments);
+            return (arg instanceof Instant) ? arg.moment() : arg;
+          }));
           if(!moment.isMoment(output))
             return output;
 
