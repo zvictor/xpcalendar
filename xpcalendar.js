@@ -37,8 +37,35 @@
     copyConfig: function(to, from) {
       var i, prop, val;
 
+      if (typeof from._isAMomentObject !== 'undefined')
+        to._isAMomentObject = from._isAMomentObject;
+
+      if (typeof from._i !== 'undefined')
+        to._i = from._i;
+
       if (typeof from._f !== 'undefined')
         to._f = from._f;
+
+      if (typeof from._l !== 'undefined')
+        to._l = from._l;
+
+      if (typeof from._strict !== 'undefined')
+        to._strict = from._strict;
+
+      if (typeof from._tzm !== 'undefined')
+        to._tzm = from._tzm;
+
+      if (typeof from._isUTC !== 'undefined')
+        to._isUTC = from._isUTC;
+
+      if (typeof from._offset !== 'undefined')
+        to._offset = from._offset;
+
+      if (typeof from._pf !== 'undefined')
+        to._pf = from._pf;
+
+      if (typeof from._locale !== 'undefined')
+        to._locale = from._locale;
 
       if (moment.momentProperties.length > 0) {
         for (i in moment.momentProperties) {
@@ -63,6 +90,8 @@
       helper.copyConfig(this, input);
     } else if(!Instant.isValidDate(input))
       throw new Error("xpCalendar.Instant does not accept non Date/moment input.");
+    else
+      this._isUTC = false;
 
     this._date = input._d || input;
     return this;
@@ -91,8 +120,6 @@
       output = new Date();
     else if(Instant.isValidDate(input))
       output = input;
-    else if(moment.isMoment(input))
-      throw new Error("should we clone it or just assign it when constructing the Instant?");
     else if(input instanceof Instant)
       return input.clone();
     else
@@ -110,7 +137,16 @@
 //  helper.builder('minutes', Date.prototype.getMinutes, Date.prototype.setMinutes);
 //  helper.builder('seconds', Date.prototype.getSeconds, Date.prototype.setSeconds);
 //  helper.builder('milliseconds', Date.prototype.getMilliseconds, Date.prototype.setMilliseconds);
-//
+
+  Instant.prototype.moment = function () {
+    if(this._moment)
+      this._moment._d = this._date;
+    else
+      this._moment = moment(this._date);
+
+    return this._moment;
+  };
+
 //  //Checks if it is a valid "moment". Called externally only.
 //  Instant.prototype.isValid = function() {
 //    // Since we have already checked the validity of the data when we created the instance,
@@ -268,12 +304,9 @@
     if (momentProto.hasOwnProperty(key) && typeof momentProto[key] === 'function' && !Instant.prototype.hasOwnProperty(key))
       Instant.prototype[key] = (function(method) {
         return function () {
-          if(this._moment)
-            this._moment._d = this._date;
-          else
-            this._moment = moment(this._date);
 
-          var output = method.apply(this._moment, arguments);
+
+          var output = method.apply(this.moment(), arguments);
           if(!moment.isMoment(output))
             return output;
 
@@ -308,9 +341,19 @@
     // xpCalendar has to override the moment.format to make it compatible with xpCalendar.Instant.
     // It is due to the fact that we do not have access to how fullCalendar calls moment.format.
     if(this instanceof Instant)
-      return oldFormat.apply(moment(this._date), arguments);
+      return oldFormat.apply(this.moment(), arguments);
 
     return oldFormat.apply(this, arguments);
+  };
+
+  var oldParse = moment.parseTwoDigitYear;
+  moment.parseTwoDigitYear = function (input) {
+    // We have to override the moment.parseTwoDigitYear to make it possible to be edited
+    // from outside of the API.
+    if(makeInstant.parseTwoDigitYear && makeInstant.parseTwoDigitYear !== oldParse)
+      return makeInstant.parseTwoDigitYear.apply(this, arguments);
+
+    return oldParse.apply(this, arguments);
   };
 
   //============\\
