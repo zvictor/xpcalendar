@@ -78,6 +78,24 @@
       }
 
       return to;
+    },
+    downGrade: function(input){
+      if(input instanceof Instant)
+        return input.moment();
+
+      if($.isArray(input))
+        return $.map(input, function(element){
+          if($.isArray(element))
+            return [helper.downGrade(element)];
+          return helper.downGrade(element);
+         });
+
+      if($.isPlainObject(input))
+        $.each(input, function( key, value ) {
+          input[key] = helper.downGrade(value);
+        });
+
+      return input;
     }
   };
 
@@ -90,8 +108,10 @@
       helper.copyConfig(this, input);
     } else if(!Instant.isValidDate(input))
       throw new Error("xpCalendar.Instant does not accept non Date/moment input.");
-    else
+    else {
+      this._isAMomentObject = true;
       this._isUTC = false;
+    }
 
     this._date = input._d || input;
     return this;
@@ -144,6 +164,7 @@
     else
       this._moment = moment(this._date);
 
+    helper.copyConfig(this._moment, this);
     return this._moment;
   };
 
@@ -290,7 +311,7 @@
       if(typeof moment[key] === 'function')
         makeInstant[key] = (function(method) {
           return function() {
-            return method.apply(this, arguments);
+            return method.apply(this, helper.downGrade(arguments));
           };
         })(moment[key]);
       else
@@ -304,12 +325,7 @@
     if (momentProto.hasOwnProperty(key) && typeof momentProto[key] === 'function' && !Instant.prototype.hasOwnProperty(key))
       Instant.prototype[key] = (function(method) {
         return function () {
-          var output = method.apply(this.moment(), $.map(arguments, function(arg){
-            if($.isArray(arg))
-              return [arg];
-
-            return (arg instanceof Instant) ? arg.moment() : arg;
-          }));
+          var output = method.apply(this.moment(), helper.downGrade(arguments));
           if(!moment.isMoment(output))
             return output;
 
