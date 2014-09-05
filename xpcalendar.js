@@ -130,7 +130,7 @@
   function makeInstant(input, format, locale, strict) {
     // fullcalendar's old parameters parseAsUTC and parseZone are
     // ignored in our Instant object as Instant does not handle zones.
-    var output; // an object with fields for the new Instant object
+    var output = input; // an object with fields for the new Instant object
 
     if($.isPlainObject(input) && input.hasOwnProperty('_i'))
       // moment 'config' object
@@ -142,7 +142,7 @@
       output = input;
     else if(input instanceof Instant)
       return input.clone();
-    else
+    else if(!moment.isMoment(input))
       output = new moment(input, format, locale, strict);
 
     return new Instant(output);
@@ -311,7 +311,11 @@
       if(typeof moment[key] === 'function')
         makeInstant[key] = (function(method) {
           return function() {
-            return method.apply(this, helper.downGrade(arguments));
+            var output = method.apply(this, helper.downGrade(arguments));
+            if(!moment.isMoment(output))
+              return output;
+
+            return makeInstant(output);
           };
         })(moment[key]);
       else
